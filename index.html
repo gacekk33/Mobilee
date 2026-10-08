@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111315"><meta name="apple-mobile-web-app-capable" content="yes"><title>LeafGPT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=scrollbar-chrome-fix-2"><link rel="stylesheet" href="mobile.css?v=1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head><body>
+<header class="mobile-header"><button id="mobileMenuOpen" type="button" aria-label="Otwórz menu">☰</button><strong>LeafGPT <span>🍃</span></strong><button id="mobileNewChat" type="button" aria-label="Nowy czat">＋</button></header><div id="mobileBackdrop" class="mobile-backdrop"></div><div class="app-shell">
+<aside class="sidebar">
+<div class="brand-row"><div class="brand">LeafGPT <span class="brand-leaf-emoji">🍃</span></div><div class="brand-actions"><button class="icon-btn" id="chatSearchButton" type="button" title="Szukaj czatów">⌕</button><button class="icon-btn" id="newChatIcon" type="button" title="Nowy czat">✎</button></div></div>
+<div class="chat-search-panel" id="chatSearchPanel"><span>⌕</span><input id="chatSearchInput" type="search" placeholder="Szukaj w rozmowach..." autocomplete="off"><button id="chatSearchClose" type="button">×</button></div>
+<button class="new-chat" id="newChatButton" type="button">◯ <span>Nowy czat</span></button>
+<nav class="nav"><button id="discoverButton" type="button">◉ <span>Odkrywaj</span></button><button id="statsButton" type="button">▥ <span>Statystyki</span></button><button id="impactButton" type="button">♧ <span>Wpływ na planetę</span></button><button id="promoButton" type="button">✦ <span>Promocja</span></button><button id="settingsButton" type="button">⚙ <span>Ustawienia</span></button></nav>
+<div class="divider"></div><section class="history" id="historySection"><div class="history-heading"><p>Ostatnie rozmowy</p><button id="historyToggle" type="button" title="Zwiń rozmowy"><span>⌃</span></button></div><div class="history-list-wrap" id="historyListWrap"><div id="historyList"></div></div></section>
+<button class="account" id="accountButton" type="button"><div class="avatar">●</div><div><strong id="accountName">Użytkownik</strong><small id="accountStatus">Zaloguj się, aby zapisywać rozmowy</small></div><span>›</span></button>
+</aside>
+<main class="main">
+<section class="tree-counter"><div class="tree-icon">🌳</div><div class="tree-info"><div class="tree-label"><span>Wiadomości do kolejnego drzewa</span><strong><span id="messageCount">0</span> / 100</strong></div><div class="progress"><div id="progressBar"></div></div></div></section>
+<section class="welcome welcome-v2" id="welcome">
+      <div class="welcome-logo"><img src="logo-leaf.png" alt="Logo LeafGPT" class="leaf-logo-img"></div>
+      <p>Twój asystent AI dla lepszej przyszłości.</p>
+      <div class="welcome-grid">
+        <button type="button" class="welcome-card" data-prompt="Wytłumacz mi trudny temat w prosty sposób"><b>📚 Nauka</b><span>Wytłumacz mi trudny temat w prosty sposób</span></button>
+        <button type="button" class="welcome-card" data-prompt="Pomóż mi wymyślić coś kreatywnego"><b>💡 Pomysły</b><span>Pomóż mi wymyślić coś kreatywnego</span></button>
+        <button type="button" class="welcome-card" data-prompt="Pomóż mi stworzyć projekt od zera"><b>💻 Programowanie</b><span>Pomóż mi stworzyć projekt od zera</span></button>
+        <button type="button" class="welcome-card" data-prompt="Opowiedz mi ciekawostkę, której prawdopodobnie nie znam"><b>💭 Ciekawostki</b><span>Opowiedz mi coś interesującego</span></button>
+      </div>
+    </section>
+<div class="inchat-search" id="inChatSearch"><span>⌕</span><input id="inChatSearchInput" type="search" placeholder="Szukaj w tym czacie..." autocomplete="off"><span class="search-count" id="inChatSearchCount">0 / 0</span><button id="searchPrev" type="button" title="Poprzedni wynik">↑</button><button id="searchNext" type="button" title="Następny wynik">↓</button><button id="inChatSearchClose" type="button" title="Zamknij">×</button></div>
+<section class="chat" id="chat"></section>
+
+<section class="discover-page hidden" id="discoverPage">
+  <div class="discover-hero">
+    <div class="discover-badge">✨ ODKRYWAJ</div>
+    <h1>Co dziś <span>odkryjemy?</span></h1>
+    <p>Wybierz kategorię albo gotowy pomysł. LeafGPT przygotuje wiadomość, a Ty możesz ją zmienić przed wysłaniem.</p>
+  </div>
+  <div class="discover-grid">
+    <button class="discover-card" data-prompt="Wytłumacz mi wybrany przeze mnie trudny temat w prosty sposób, krok po kroku."><i>📚</i><strong>Nauka</strong><span>Proste wyjaśnienia i pomoc w zrozumieniu tematów.</span></button>
+    <button class="discover-card" data-prompt="Pomóż mi zrobić kreatywną burzę mózgów i wymyślić kilka ciekawych pomysłów."><i>💡</i><strong>Pomysły</strong><span>Burza mózgów, projekty i nowe koncepcje.</span></button>
+    <button class="discover-card" data-prompt="Pomóż mi stworzyć projekt programistyczny od zera. Najpierw zapytaj, co chcę zbudować."><i>💻</i><strong>Programowanie</strong><span>Kod, strony, boty i własne projekty.</span></button>
+    <button class="discover-card" data-prompt="Pomóż mi napisać albo poprawić tekst. Najpierw zapytaj, jaki tekst chcę przygotować."><i>✍️</i><strong>Pisanie</strong><span>Teksty, opisy, pomysły i poprawki.</span></button>
+    <button class="discover-card" data-prompt="Wyjaśnij mi wybrany temat krok po kroku i podaj prosty przykład."><i>🧠</i><strong>Wyjaśnij mi</strong><span>Rozbij skomplikowane rzeczy na proste kroki.</span></button>
+    <button class="discover-card" data-prompt="Pomóż mi z czymś związanym z grami. Zapytaj, w jaką grę gram i czego potrzebuję."><i>🎮</i><strong>Gaming</strong><span>Gry, mechaniki, komendy i konfiguracje.</span></button>
+    <button class="discover-card" data-prompt="Pomóż mi stworzyć coś kreatywnego: nazwę, koncept, scenariusz albo oryginalny pomysł."><i>🎨</i><strong>Kreatywność</strong><span>Nazwy, koncepty, scenariusze i inspiracje.</span></button>
+    <button class="discover-card" data-prompt="Opowiedz mi ciekawostkę na losowy interesujący temat i wyjaśnij, dlaczego jest ciekawa."><i>🌍</i><strong>Ciekawostki</strong><span>Odkryj coś, czego prawdopodobnie jeszcze nie wiesz.</span></button>
+  </div>
+  <div class="prompt-section">
+    <div class="discover-section-head"><div><small>POPULARNE PROMPTY</small><h2>Zacznij jednym kliknięciem</h2></div><button id="surpriseButton" class="surprise-button" type="button">🎲 Zaskocz mnie</button></div>
+    <div class="prompt-chips">
+      <button data-prompt="Naucz mnie czegoś ciekawego w 5 minut.">Naucz mnie czegoś w 5 minut</button>
+      <button data-prompt="Daj mi pomysł na mały projekt, który mogę zacząć dzisiaj.">Daj mi pomysł na projekt</button>
+      <button data-prompt="Wyjaśnij mi wybrany temat bardzo prosto i użyj porównania z codziennego życia.">Wyjaśnij to bardzo prosto</button>
+      <button data-prompt="Zrób ze mną burzę mózgów. Najpierw zapytaj, nad czym pracuję.">Zróbmy burzę mózgów</button>
+      <button data-prompt="Podaj mi 5 ciekawych rzeczy, których warto się dziś dowiedzieć.">Co warto dziś odkryć?</button>
+    </div>
+  </div>
+</section>
+
+<section class="stats-page hidden" id="statsPage">
+  <div class="stats-header"><h1>Twoje statystyki 🌱</h1><p>Twój postęp w LeafGPT zapisany na koncie.</p></div>
+  <div class="stats-grid">
+    <article class="stat-card"><div class="stat-icon">💬</div><strong id="statsMessages">0</strong><span>Wysłane wiadomości</span></article>
+    <article class="stat-card"><div class="stat-icon">🌳</div><strong id="statsTrees">0</strong><span>Zdobyte drzewa</span></article>
+    <article class="stat-card"><div class="stat-icon">🍃</div><strong id="statsRemaining">100</strong><span>Wiadomości do kolejnego drzewa</span></article>
+    <article class="stat-card stats-wide"><div class="stats-progress-head"><strong>Postęp do kolejnego drzewa</strong><span id="statsProgressText">0 / 100</span></div><div class="progress"><div id="statsProgressBar"></div></div><div class="stats-note">Licznik jest przypisany do Twojego konta. Jedno drzewo nalicza się po każdych 100 wysłanych wiadomościach.</div></article>
+  </div>
+  <section class="admin-stats hidden" id="adminStatsZone">
+    <div class="admin-stats-head">
+      <div><span class="admin-badge">ADMIN</span><h2>Strefa administratora</h2><p>Zbiorcze statystyki całego LeafGPT.</p></div>
+      <button type="button" id="adminRefresh">Odśwież</button>
+    </div>
+    <div class="admin-grid">
+      <article class="admin-card"><span>Wszystkie konta</span><strong id="adminAccounts">—</strong></article>
+      <article class="admin-card"><span>Wszystkie czaty</span><strong id="adminChats">—</strong></article>
+      <article class="admin-card"><span>Wiadomości użytkowników</span><strong id="adminUserMessages">—</strong></article>
+      <article class="admin-card"><span>Odpowiedzi LeafGPT</span><strong id="adminAssistantMessages">—</strong></article>
+      <article class="admin-card"><span>Wszystkie wiadomości</span><strong id="adminAllMessages">—</strong></article>
+      <article class="admin-card"><span>Zdobyte drzewa łącznie</span><strong id="adminTrees">—</strong></article>
+      <article class="admin-card"><span>Nowe konta dzisiaj</span><strong id="adminAccountsToday">—</strong></article>
+      <article class="admin-card"><span>Wiadomości użytkowników dzisiaj</span><strong id="adminMessagesToday">—</strong></article>
+    </div>
+    <p class="admin-status" id="adminStatus"></p>
+  </section>
+</section>
+
+<section class="impact-page hidden" id="impactPage">
+  <div class="impact-hero">
+    <div class="impact-badge">🌍 WPŁYW NA PLANETĘ</div>
+    <h1>Twój wpływ zaczyna się <span>tutaj.</span></h1>
+    <p>LeafGPT łączy codzienne korzystanie ze sztucznej inteligencji z ideą, która może w przyszłości wyjść poza ekran. Każda rozmowa buduje Twój postęp i przybliża Cię do kolejnego zdobytego drzewa.</p>
+  </div>
+
+  <div class="impact-flow">
+    <article class="impact-step"><div class="impact-icon">💬</div><small>01</small><h2>Rozmawiaj</h2><p>Pytaj, twórz, ucz się i korzystaj z LeafGPT tak jak zwykle.</p></article>
+    <div class="impact-arrow">→</div>
+    <article class="impact-step"><div class="impact-icon">🍃</div><small>02</small><h2>Zdobywaj</h2><p>Każda wysłana wiadomość zwiększa postęp. Po 100 wiadomościach zdobywasz kolejne drzewo.</p></article>
+    <div class="impact-arrow">→</div>
+    <article class="impact-step"><div class="impact-icon">🌳</div><small>03</small><h2>Buduj wpływ</h2><p>Twój wynik zapisuje się na koncie i staje się częścią większej idei LeafGPT.</p></article>
+  </div>
+
+  <div class="impact-goal">
+    <div class="impact-copy">
+      <span>NASZ CEL</span>
+      <h2>Technologia nie musi kończyć się na ekranie.</h2>
+      <p>Chcemy rozwijać LeafGPT tak, aby zdobywane przez społeczność drzewa mogły w przyszłości przekładać się na rzeczywiste działania związane z sadzeniem drzew i ochroną środowiska.</p>
+      <div class="impact-note"><strong>Pełna przejrzystość:</strong> obecnie licznik pokazuje drzewa zdobyte w LeafGPT. Nie oznacza jeszcze, że każde z nich zostało fizycznie posadzone. Gdy uruchomimy rzeczywistą realizację akcji, informacje i wyniki pojawią się tutaj.</div>
+    </div>
+    <div class="impact-conversion"><div class="big-tree">🌳</div><strong>100</strong><span>wiadomości</span><b>=</b><strong>1</strong><span>zdobyte drzewo</span></div>
+  </div>
+
+  <div class="impact-numbers">
+    <div><strong>100</strong><span>wiadomości</span><b>🌳 1 drzewo</b></div>
+    <div><strong>1 000</strong><span>wiadomości</span><b>🌳 10 drzew</b></div>
+    <div><strong>10 000</strong><span>wiadomości</span><b>🌳 100 drzew</b></div>
+  </div>
+
+  <div class="impact-footer"><div>🍃</div><h2>Mała wiadomość. Większy cel.</h2><p>Każda rozmowa może być początkiem czegoś większego.</p></div>
+</section>
+
+
+
+<section class="promo-page hidden" id="promoPage">
+  <div class="promo-head">
+    <span class="promo-kicker">PROMOCJA</span>
+    <h1>Nasi współpracujący</h1>
+    <p>Projekty i twórcy współpracujący z LeafGPT.</p>
+  </div>
+  <div class="promo-list">
+    <article class="partner-card">
+      <img class="partner-logo" src="valek-logo.png" alt="Logo VałekAI">
+      <div class="partner-info">
+        <h2>VałekAI</h2>
+        <p>Bot Discord, AI na discord. By Kanał V</p>
+      </div>
+      <a class="partner-link" href="https://valek-ai.anna-bluma6.chatgpt.site" target="_blank" rel="noopener noreferrer">PRZENIEŚ NA STRONĘ</a>
+    </article>
+  </div>
+</section>
+
+<section class="settings-page hidden" id="settingsPage">
+  <div class="settings-head">
+    <span class="settings-kicker">USTAWIENIA</span>
+    <h1>Dostosuj LeafGPT</h1>
+    <p>Ustaw wygląd aplikacji i sprawdź informacje o swoim koncie.</p>
+  </div>
+
+  <div class="settings-card">
+    <div class="settings-card-title"><div class="settings-icon">◐</div><div><h2>Wygląd</h2><p>Wybierz motyw i kolor akcentu interfejsu.</p></div></div>
+    <div class="setting-row">
+      <div><strong>Motyw</strong><span>Zmień wygląd całej aplikacji.</span></div>
+      <div class="theme-picker" id="themePicker">
+        <button type="button" data-theme="dark">🌙 Ciemny</button>
+        <button type="button" data-theme="light">☀️ Jasny</button>
+        <button type="button" data-theme="system">◐ Systemowy</button>
+      </div>
+    </div>
+    <div class="setting-row accent-row">
+      <div><strong>Kolor akcentu</strong><span>Podstawowy kolor wyróżnień LeafGPT.</span></div>
+      <div class="accent-picker" id="accentPicker">
+        <button type="button" data-accent="green" title="Zielony" aria-label="Zielony"></button>
+        <button type="button" data-accent="blue" title="Niebieski" aria-label="Niebieski"></button>
+        <button type="button" data-accent="purple" title="Fioletowy" aria-label="Fioletowy"></button>
+        <button type="button" data-accent="red" title="Czerwony" aria-label="Czerwony"></button>
+        <button type="button" data-accent="orange" title="Pomarańczowy" aria-label="Pomarańczowy"></button>
+        <button type="button" data-accent="pink" title="Różowy" aria-label="Różowy"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <div class="settings-card-title"><div class="settings-icon">◎</div><div><h2>Konto</h2><p>Informacje o aktualnie zalogowanym koncie.</p></div></div>
+    <div class="account-settings-box">
+      <div class="account-settings-avatar">●</div>
+      <div class="account-settings-info"><strong id="settingsAccountName">Nie zalogowano</strong><span id="settingsAccountEmail">—</span></div>
+      <button type="button" class="settings-logout" id="settingsLogout">Wyloguj się</button>
+    </div>
+  </div>
+</section>
+
+<div class="composer-wrap"><form class="composer" id="chatForm"><textarea id="messageInput" rows="1" placeholder="Napisz do LeafGPT..."></textarea><div class="composer-bottom"><div class="tools"><button id="inChatSearchButton" type="button" title="Szukaj w tym czacie">⌕</button><button type="button">◎</button></div><button class="send" type="submit">➤</button></div></form><p class="notice">LeafGPT może popełniać błędy. Sprawdzaj ważne informacje.</p></div>
+</main></div>
+<div class="auth-overlay hidden" id="authOverlay"><div class="auth-modal"><button class="auth-close" id="authClose">×</button><div class="auth-logo">LeafGPT 🍃</div><h2 id="authTitle">Zaloguj się</h2><p class="auth-subtitle">Zaloguj się, aby synchronizować rozmowy między urządzeniami.</p><form id="authForm"><label>E-mail</label><input id="authEmail" type="email" required><label>Hasło</label><input id="authPassword" type="password" minlength="6" required><button class="auth-submit" id="authSubmit">Zaloguj się</button></form><p class="auth-message" id="authMessage"></p><button class="auth-switch" id="authSwitch">Nie masz konta? Zarejestruj się</button><button class="logout hidden" id="logoutButton">Wyloguj się</button></div></div>
+<script src="script.js?v=logo-fix-2"></script><script src="mobile.js?v=1"></script></body></html>
